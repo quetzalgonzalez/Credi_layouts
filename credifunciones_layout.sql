@@ -210,3 +210,26 @@ CREATE OR REPLACE FUNCTION `CDC_DWH_BI_BEC.fn_baja_docente`(campos STRING, param
 ---9) Cambio baja
 CREATE OR REPLACE FUNCTION `CDC_DWH_BI_BEC.fn_cambio_baja`(param_campos STRING, param_fechaejecucion String, param_dependencia String , campos_agrupados STRING) RETURNS STRING AS ( (FORMAT(""" SELECT %s di.idcliente, max(di.idcredito) as idcredito, "CAMBIO BAJA" AS TIPO, "CB" AS MOV, a.FECHASISTEMA, a.PERIODO FROM `RAW_DWH_BI.tblcreddictaminacion` di inner JOIN `CDC_DWH_BI.%s` a on di.idcliente = a.idcliente WHERE di.estatuscredito = 'ACTIVO' AND di.saldoactual > 0 GROUP BY %s di.idcliente, a.FECHASISTEMA, a.PERIODO ; """, param_campos,`CDC_DWH_BI.fn_tabla_layout`(param_dependencia,'baja'),campos_agrupados) ));
  
+---10) Cambio alta
+CREATE OR REPLACE FUNCTION `CDC_DWH_BI_BEC.fn_cambio_alta`(param_dependencia STRING, param_fechaejecucion DATE, campos STRING, campos_agrupados STRING) RETURNS STRING AS (
+ (FORMAT("""  
+SELECT
+    %s
+    di.idcliente,    
+max(di.idcredito) as idcredito,    
+"CAMBIO ALTA" AS TIPO,    
+"CA" AS MOV,
+    a.FECHASISTEMA,
+    a.PERIODO    
+FROM `cfl-inf-ana-dev.RAW_DWH_BI.tblcreddictaminacion` di inner JOIN `CDC_DWH_BI.%s` a on di.idcliente = a.idcliente    
+WHERE di.estatuscredito = 'ACTIVO' AND di.saldoactual > 0    
+GROUP BY
+    %s
+    di.idcliente,
+    a.FECHASISTEMA,
+    a.PERIODO;
+""",
+campos,`CDC_DWH_BI.fn_tabla_layout`(param_dependencia,'alta'),campos_agrupados
+) 
+)
+);
